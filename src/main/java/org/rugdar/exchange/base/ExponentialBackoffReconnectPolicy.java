@@ -4,7 +4,7 @@ public class ExponentialBackoffReconnectPolicy {
 
     private static final int INITIAL_DELAY_SECONDS = 5;
     private static final int MAX_DELAY_SECONDS = 60;
-    private static final int MAX_EXPONENT = 3;
+    private static final int MAX_EXPONENT = 4;
     private static final int MAX_ATTEMPTS = 10;
 
     public long nextDelaySeconds(int attempt) {

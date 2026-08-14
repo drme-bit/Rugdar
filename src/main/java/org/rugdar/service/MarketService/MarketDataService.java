@@ -1,4 +1,4 @@
-package org.rugdar.service;
+package org.rugdar.service.MarketService;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
