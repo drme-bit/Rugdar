@@ -1,0 +1,14 @@
+rugdar:
+  exchanges:
+    bybit:
+        url: wss://stream.bybit.com/v5/public/spot
+        symbols: BTCUSDT,ETHUSDT
+    whitebit:
+        url: wss://api.whitebit.com/ws
+        symbols: BTC_USDT,ETH_USDT
+    binance:
+        url: wss://stream.binance.com:9443/ws
+        symbols: BTCUSDT,ETHUSDT
+
+server:
+  port: 8081
