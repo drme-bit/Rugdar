@@ -61,6 +61,8 @@ public class MarketDataWsHandler extends TextWebSocketHandler {
                     }
                 } catch (Exception e) {
                     sessions.remove(session);
+                    subscriptions.remove(session);
+                    sessionLocks.remove(session);
                 }
             }
         } catch (JsonProcessingException e) {
