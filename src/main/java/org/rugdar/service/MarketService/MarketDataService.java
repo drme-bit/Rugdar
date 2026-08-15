@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.rugdar.dto.Ticker;
+import org.rugdar.service.IdService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +21,30 @@ public class MarketDataService {
     private final Map<String, Ticker> latest = new ConcurrentHashMap<>();
     private final Map<String, Deque<Ticker>> history = new ConcurrentHashMap<>();
 
+    private final IdService ids;
+    private final ApplicationEventPublisher publisher;
+
+    public MarketDataService(IdService ids, ApplicationEventPublisher publisher) {
+        this.ids = ids;
+        this.publisher = publisher;
+    }
+
     @EventListener
     public void onTicker(Ticker ticker) {
+        if (ticker.id() == null) {
+            Ticker enriched = new Ticker(
+                    ids.next(),
+                    ticker.exchange(), ticker.symbol(),
+                    ticker.lastPrice(), ticker.open(), ticker.high(), ticker.low(),
+                    ticker.volume(), ticker.turnover(), ticker.timestamp());
+            store(enriched);
+            publisher.publishEvent(enriched);
+        } else {
+            store(ticker);
+        }
+    }
+
+    private void store(Ticker ticker) {
         String key = ticker.exchange() + ":" + ticker.symbol();
         latest.put(key, ticker);
         Deque<Ticker> deque = history.computeIfAbsent(key, k -> new ArrayDeque<>());

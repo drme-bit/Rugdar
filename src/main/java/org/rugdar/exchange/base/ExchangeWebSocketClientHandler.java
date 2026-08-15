@@ -4,6 +4,7 @@ import org.jspecify.annotations.NonNull;
 import org.rugdar.utils.Log;
 import org.slf4j.Logger;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -25,7 +26,9 @@ public class ExchangeWebSocketClientHandler implements WebSocketHandler {
 
     @Override
     public void handleMessage(@NonNull WebSocketSession session, WebSocketMessage<?> message) {
-        client.onMessage(String.valueOf(message.getPayload()));
+        if (message instanceof TextMessage text) {
+            client.onMessage(text.getPayload());
+        }
     }
 
     @Override

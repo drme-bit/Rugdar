@@ -31,6 +31,7 @@ public class MarketDataWsHandler extends TextWebSocketHandler {
     private final AtomicLong seq = new AtomicLong();
     private final CopyOnWriteArraySet<WebSocketSession> sessions = new CopyOnWriteArraySet<>();
     private final Map<WebSocketSession, Set<String>> subscriptions = new ConcurrentHashMap<>();
+    private final Map<WebSocketSession, Object> sessionLocks = new ConcurrentHashMap<>();
 
     public MarketDataWsHandler(ObjectMapper mapper) {
         this.mapper = mapper;
@@ -38,6 +39,9 @@ public class MarketDataWsHandler extends TextWebSocketHandler {
 
     @EventListener
     public void onTicker(Ticker ticker) {
+        if (ticker.id() == null) {
+            return;
+        }
         broadcast("ticker", ticker);
     }
 
@@ -51,7 +55,7 @@ public class MarketDataWsHandler extends TextWebSocketHandler {
             for (WebSocketSession session : sessions) {
                 try {
                     if (session.isOpen() && wants(session, type)) {
-                        synchronized (session) {
+                        synchronized (lock(session)) {
                             session.sendMessage(new TextMessage(json));
                         }
                     }
@@ -73,6 +77,7 @@ public class MarketDataWsHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         sessions.remove(session);
         subscriptions.remove(session);
+        sessionLocks.remove(session);
     }
 
     @Override
@@ -126,12 +131,16 @@ public class MarketDataWsHandler extends TextWebSocketHandler {
 
     private void send(WebSocketSession session, Map<String, Object> payload) {
         try {
-            synchronized (session) {
+            synchronized (lock(session)) {
                 session.sendMessage(new TextMessage(mapper.writeValueAsString(payload)));
             }
         } catch (Exception e) {
             log.warn("WS send error", e);
         }
+    }
+
+    private Object lock(WebSocketSession session) {
+        return sessionLocks.computeIfAbsent(session, _ -> new Object());
     }
 
     private boolean wants(WebSocketSession session, String type) {

@@ -4,15 +4,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.rugdar.dto.Ticker;
 import org.rugdar.service.MarketService.MarketDataService;
+import org.springframework.context.ApplicationEventPublisher;
 
 class MarketDataServiceTest {
 
-    private final MarketDataService service = new MarketDataService();
+    private final List<Object> published = new ArrayList<>();
+    private final MarketDataService service =
+            new MarketDataService(new IdService(0), published::add);
 
     @Test
     void storesLatestTickerPerExchangeSymbol() {
@@ -69,6 +74,30 @@ class MarketDataServiceTest {
         service.onTicker(ticker("whitebit", "ETHUSDT", "2000"));
 
         assertThat(service.allLatest()).hasSize(2);
+    }
+
+    @Test
+    void enrichesRawTickerWithIdAndRepublishes() {
+        service.onTicker(ticker("bybit", "BTCUSDT", "100"));
+
+        Ticker stored = service.latest("bybit", "BTCUSDT").orElseThrow();
+        assertThat(stored.id()).isNotNull();
+        assertThat(published).hasSize(1);
+        assertThat(((Ticker) published.get(0)).id()).isEqualTo(stored.id());
+    }
+
+    @Test
+    void alreadyEnrichedTickerIsNotRepublished() {
+        Ticker raw = ticker("bybit", "BTCUSDT", "100");
+        Ticker enriched = new Ticker(
+                UUID.randomUUID(),
+                raw.exchange(), raw.symbol(),
+                raw.lastPrice(), raw.open(), raw.high(), raw.low(),
+                raw.volume(), raw.turnover(), raw.timestamp());
+
+        service.onTicker(enriched);
+
+        assertThat(published).isEmpty();
     }
 
     private static Ticker ticker(String exchange, String symbol, String last) {
