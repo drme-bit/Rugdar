@@ -43,6 +43,10 @@ public class MarketAnalysisService {
 
     @Scheduled(fixedRateString = "${rugdar.analysis.interval-seconds:30}000")
     public void analyzeCurrentMarket() {
+        if (!analysisEnabled) {
+            return;
+        }
+
         try {
             String snapshot = snapshots.currentJson();
             log.info("Analyzing market snapshot ({} bytes)", snapshot.length());
