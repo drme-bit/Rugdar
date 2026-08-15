@@ -131,7 +131,9 @@ class MarketDataWsHandlerTest {
         verify(session).sendMessage(captor.capture());
         assertThat(captor.getValue().getPayload())
                 .contains("\"type\":\"error\"", "\"code\":\"BAD_REQUEST\"");
-    }    @Test
+    }
+
+    @Test
     void closedSessionReceivesNothing() throws Exception {
         WebSocketSession session = mock(WebSocketSession.class);
         when(session.isOpen()).thenReturn(true);
