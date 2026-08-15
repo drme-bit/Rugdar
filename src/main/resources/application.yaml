@@ -1,9 +1,9 @@
 rugdar:
   ai:
     enabled: true
-    system-prompt:
-      - "You are a crypto market analyst. "
-      - "Analyze the provided market snapshot and give a concise market overview."
+    system-prompt: >
+      You are a crypto market analyst.
+      Analyze the provided market snapshot and give a concise market overview.
   analysis:
     interval-seconds: 30
   exchanges:
@@ -23,7 +23,7 @@ spring:
       api-key: ${AI_GATEWAY_API_KEY}
       base-url: https://ai-gateway.vercel.sh/v1
       chat:
-        model: meta/muse-glimmer-30b
+        model: deepseek/deepseek-v4-pro-0813
 
 server:
   port: 8081

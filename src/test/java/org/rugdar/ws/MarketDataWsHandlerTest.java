@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -176,6 +177,7 @@ class MarketDataWsHandlerTest {
 
     private static Ticker ticker() {
         return new Ticker(
+                UUID.randomUUID(),
                 "bybit", "BTCUSDT",
                 new BigDecimal("100.5"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
                 BigDecimal.ZERO, BigDecimal.ZERO, Instant.now());
