@@ -49,7 +49,7 @@ public class WhitebitExchangeWebSocketClient extends ExchangeWebSocketClient {
                 .map(node -> {
                     JsonNode params = node.path("params");
                     JsonNode stats = params.size() > 1 ? params.get(1) : params.get(0);
-                    String symbol = params.size() > 0 ? params.get(0).asText().replace("_", "") : null;
+                    String symbol = !params.isEmpty() ? params.get(0).asText().replace("_", "") : null;
                     if (symbol == null || stats.path("last").isMissingNode()) {
                         return null;
                     }

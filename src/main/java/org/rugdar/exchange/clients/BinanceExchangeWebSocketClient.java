@@ -20,7 +20,6 @@ public class BinanceExchangeWebSocketClient extends ExchangeWebSocketClient {
     private static final int SUBSCRIBE_ID = 1;
 
     private final List<String> symbols;
-    private int nextId = 100;
 
     public BinanceExchangeWebSocketClient(
             @Value("${rugdar.exchanges.binance.url}") String url,
@@ -64,13 +63,6 @@ public class BinanceExchangeWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     protected void ping() {
-        ObjectNode message = mapper.createObjectNode();
-        message.put("method", "PING");
-        message.put("id", nextRequestId());
-        sendJson(message);
-    }
-
-    private int nextRequestId() {
-        return nextId++;
+        sendPingFrame();
     }
 }

@@ -3,6 +3,7 @@ package org.rugdar.exchange.base;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,6 +15,7 @@ import org.rugdar.utils.Log;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -89,6 +91,17 @@ public abstract class ExchangeWebSocketClient implements DisposableBean {
             send(mapper.writeValueAsString(message));
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize WS message", e);
+        }
+    }
+
+    protected void sendPingFrame() {
+        WebSocketSession current = session;
+        if (current != null && current.isOpen()) {
+            try {
+                current.sendMessage(new PingMessage(ByteBuffer.wrap(new byte[0])));
+            } catch (Exception e) {
+                log.warn("WS ping frame send error", e);
+            }
         }
     }
 
