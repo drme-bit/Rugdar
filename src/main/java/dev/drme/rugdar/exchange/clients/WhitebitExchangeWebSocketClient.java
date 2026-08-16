@@ -32,6 +32,11 @@ public class WhitebitExchangeWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
+    public String exchangeName() {
+        return "whitebit";
+    }
+
+    @Override
     protected void subscribe() {
         ArrayNode markets = mapper.createArrayNode();
         symbols.forEach(markets::add);

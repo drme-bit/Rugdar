@@ -6,9 +6,10 @@ Crypto market data aggregator. Connects to multiple exchanges over WebSocket, st
 
 - **Multi-exchange ticker collection** over WebSocket: Binance, Bybit, Whitebit
 - **In-memory storage**: latest ticker plus history (up to 200 entries) per symbol
-- **Client-facing WebSocket** (`/ws/market`): subscribe to tickers and AI analysis
+- **Client-facing WebSocket** (`/ws/market`, `/ws/analysis`, `/ws/status`): stream tickers, AI analysis and exchange connection status
 - **AI market analysis**: a market snapshot is sent to an LLM (Spring AI), results are broadcast to subscribers
 - **Resilient connections**: exponential backoff reconnect (5s → 60s, up to 10 attempts) + keep-alive ping
+- **Exchange status streaming** (`/ws/status`): live connection state per exchange, snapshot sent on connect
 - **Custom UUIDv8 generator**: time-ordered IDs (timestamp + sequence + node id)
 
 ## Tech stack
@@ -93,33 +94,13 @@ server:
 
 ## WebSocket API
 
-Connect to: `ws://localhost:8081/ws/market`
+Endpoints:
 
-### Client → server
-
-Subscribe to a topic:
-
-```json
-{ "action": "subscribe", "topic": "ticker" }
-```
-
-Unsubscribe:
-
-```json
-{ "action": "unsubscribe", "topic": "ticker" }
-```
-
-Supported topics: `ticker`, `analysis`.
-
-Control command responses:
-
-```json
-{ "v": 1, "type": "subscribed", "seq": 1, "topic": "ticker" }
-{ "v": 1, "type": "unsubscribed", "seq": 2, "topic": "ticker" }
-{ "v": 1, "type": "error", "seq": 3, "code": "BAD_REQUEST", "message": "missing 'topic'" }
-```
-
-Error codes: `BAD_REQUEST`, `UNKNOWN_TOPIC`, `UNKNOWN_ACTION`.
+| Endpoint | What you get |
+|---|---|
+| `/ws/market` | live `ticker` push |
+| `/ws/analysis` | `analysis_history` snapshot on connect + live `analysis` push |
+| `/ws/status` | `marketStatus` snapshot on connect + updates on change |
 
 ### Server → client
 
@@ -160,6 +141,23 @@ AI analysis push:
   }
 }
 ```
+
+Exchange status push (`/ws/status`):
+
+```json
+{
+  "v": 1,
+  "type": "marketStatus",
+  "seq": 6,
+  "data": {
+    "binance": "CONNECTED",
+    "bybit": "RECONNECTING",
+    "whitebit": "CONNECTED"
+  }
+}
+```
+
+States: `CONNECTING`, `CONNECTED`, `RECONNECTING`, `DISCONNECTED`, `FAILED`. On connect, a snapshot with the current state of every exchange is sent first; later messages push changes.
 
 Envelope fields: `v` — protocol version (1), `type` — event type, `seq` — monotonically increasing sequence number, `data` — payload.
 

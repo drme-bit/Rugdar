@@ -16,8 +16,18 @@ rugdar:
     binance:
         url: wss://stream.binance.com:9443/ws
         symbols: BTCUSDT,ETHUSDT
+    okx:
+      url: wss://ws.okx.com:8443/ws/v5/public
+      symbols: BTC-USDT,ETH-USDT
 
 spring:
+  application:
+    name: rugdar
+  mongodb:
+    database: Cluster0
+    uri: ${MONGODB_URI}
+    representation:
+      uuid: STANDARD
   ai:
     openai:
       api-key: ${AI_GATEWAY_API_KEY}

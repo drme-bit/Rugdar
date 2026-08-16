@@ -1,9 +1,10 @@
 package dev.drme.rugdar.service.MarketService;
 
 import dev.drme.rugdar.dto.Analysis;
+import dev.drme.rugdar.repository.AnalysisRepository;
 import dev.drme.rugdar.service.IdService;
 import dev.drme.rugdar.utils.Log;
-import dev.drme.rugdar.ws.MarketDataWsHandler;
+import dev.drme.rugdar.ws.MarketAnalysisHandler;
 import org.slf4j.Logger;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -22,20 +23,23 @@ public class MarketAnalysisService {
 
     private final ChatClient chatClient;
     private final SnapshotService snapshots;
-    private final MarketDataWsHandler wsHandler;
+    private final MarketAnalysisHandler analysisHandler;
     private final IdService ids;
+    private final AnalysisRepository analysisRepository;
 
     public MarketAnalysisService(
             @Value("${rugdar.ai.system-prompt}") String systemPrompt,
             @Value("${rugdar.ai.enabled}") boolean analysisEnabled,
             ChatClient.Builder chatClientBuilder,
             SnapshotService snapshots,
-            MarketDataWsHandler wsHandler,
-            IdService ids) {
+            MarketAnalysisHandler analysisHandler,
+            IdService ids,
+            AnalysisRepository analysisRepository) {
         this.chatClient = chatClientBuilder.build();
         this.snapshots = snapshots;
-        this.wsHandler = wsHandler;
+        this.analysisHandler = analysisHandler;
         this.ids = ids;
+        this.analysisRepository = analysisRepository;
 
         this.systemPrompt = systemPrompt;
         this.analysisEnabled = analysisEnabled;
@@ -55,15 +59,20 @@ public class MarketAnalysisService {
                     .user(snapshot)
                     .call()
                     .chatResponse();
-            String analysis = response.getResult().getOutput().getText();
-            String model = response.getMetadata().getModel();
-            Analysis record = new Analysis(
-                    ids.next(),
-                    model,
-                    Instant.now(),
-                    analysis
-            );
-            wsHandler.broadcast("analysis", record);
+            if (response != null) {
+                String analysis = response.getResult().getOutput().getText();
+                String model = response.getMetadata().getModel();
+                Analysis record = new Analysis(
+                        ids.next(),
+                        model,
+                        Instant.now(),
+                        analysis
+                );
+                analysisHandler.broadcast("analysis", record);
+                analysisRepository.save(record);
+            } else {
+                log.warn("Analysis failed: no response");
+            }
         } catch (Exception e) {
             log.warn("Market analysis failed", e);
         }

@@ -29,6 +29,11 @@ public class BybitExchangeWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
+    public String exchangeName() {
+        return "bybit";
+    }
+
+    @Override
     protected void subscribe() {
         ArrayNode topics = mapper.createArrayNode();
         symbols.forEach(s -> topics.add("tickers." + s));

@@ -35,6 +35,7 @@ public abstract class ExchangeWebSocketClient implements DisposableBean {
 
     private volatile WebSocketSession session;
     private volatile boolean closed;
+    private volatile ConnectionState state = ConnectionState.DISCONNECTED;
     private int reconnectAttempts;
     private ScheduledFuture<?> keepAliveTask;
 
@@ -49,6 +50,7 @@ public abstract class ExchangeWebSocketClient implements DisposableBean {
         if (closed) {
             return;
         }
+        changeState(ConnectionState.CONNECTING);
         try {
             client.execute(new ExchangeWebSocketClientHandler(this), url);
         } catch (Exception e) {
@@ -60,6 +62,7 @@ public abstract class ExchangeWebSocketClient implements DisposableBean {
     void onConnected(WebSocketSession webSocketSession) {
         session = webSocketSession;
         reconnectAttempts = 0;
+        changeState(ConnectionState.CONNECTED);
         log.info("Connected to {}", url);
         startKeepAlive();
         subscribe();
@@ -71,6 +74,7 @@ public abstract class ExchangeWebSocketClient implements DisposableBean {
 
     void onDisconnected() {
         session = null;
+        changeState(ConnectionState.DISCONNECTED);
         stopKeepAlive();
         scheduleReconnect();
     }
@@ -143,12 +147,28 @@ public abstract class ExchangeWebSocketClient implements DisposableBean {
         }
         reconnectAttempts++;
         if (reconnectPolicy.shouldGiveUp(reconnectAttempts)) {
+            changeState(ConnectionState.FAILED);
             log.error("Giving up after {} reconnect attempts to {}", reconnectAttempts, url);
             return;
         }
+        changeState(ConnectionState.RECONNECTING);
         long delay = reconnectPolicy.nextDelaySeconds(reconnectAttempts);
         log.info("Reconnecting to {} in {}s (attempt {}/{})", url, delay, reconnectAttempts, reconnectPolicy.maxAttempts());
         scheduler.schedule(this::connect, delay, TimeUnit.SECONDS);
+    }
+
+    private void changeState(ConnectionState newState) {
+        if (state == newState) {
+            return;
+        }
+        state = newState;
+        publisher.publishEvent(new ExchangeStatusChangedEvent(exchangeName(), newState));
+    }
+
+    public abstract String exchangeName();
+
+    public ConnectionState state() {
+        return state;
     }
 
     @Override

@@ -31,6 +31,11 @@ public class BinanceExchangeWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
+    public String exchangeName() {
+        return "binance";
+    }
+
+    @Override
     protected void subscribe() {
         ArrayNode streams = mapper.createArrayNode();
         symbols.forEach(s -> streams.add(s.toLowerCase() + "@ticker"));
