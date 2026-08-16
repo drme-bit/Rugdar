@@ -25,7 +25,7 @@ Crypto market data aggregator. Connects to multiple exchanges over WebSocket, st
 ## Project structure
 
 ```
-src/main/java/org/rugdar/
+src/main/java/dev/drme/rugdar/
 ├── Main.java                      # Spring Boot entry point
 ├── config/                        # WebSocket, Jackson, Async configuration
 ├── exchange/
