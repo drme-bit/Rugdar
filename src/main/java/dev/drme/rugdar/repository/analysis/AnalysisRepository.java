@@ -1,4 +1,4 @@
-package dev.drme.rugdar.repository;
+package dev.drme.rugdar.repository.analysis;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;

@@ -3,9 +3,16 @@ rugdar:
     enabled: true
     system-prompt: >
       You are a crypto market analyst.
-      Analyze the provided market snapshot and give a concise market overview.
+      Analyze the provided market data summary covering the last week,
+      including trend indicators (SMA20 and EMA20),
+      and give a concise market overview.
   analysis:
-    interval-seconds: 30
+    interval-minutes: 60
+    history-days: 7
+  storage:
+    flush-interval-ms: 10000
+    cleanup-interval-ms: 3600000
+    retention-days: 7
   exchanges:
     bybit:
         url: wss://stream.bybit.com/v5/public/spot
@@ -23,6 +30,13 @@ rugdar:
 spring:
   application:
     name: rugdar
+  datasource:
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}?TimeZone=UTC
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    validate-migration-naming: true
   mongodb:
     database: Cluster0
     uri: ${MONGODB_URI}
