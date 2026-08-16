@@ -14,7 +14,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.drme.rugdar.dto.Analysis;
-import dev.drme.rugdar.repository.AnalysisRepository;
+import dev.drme.rugdar.repository.analysis.AnalysisRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.TextMessage;

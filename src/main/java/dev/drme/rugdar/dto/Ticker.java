@@ -16,6 +16,8 @@ public record Ticker(
         BigDecimal turnover,
         Instant timestamp
 ) {
+
+
     public Ticker(
             String exchange,
             String symbol,

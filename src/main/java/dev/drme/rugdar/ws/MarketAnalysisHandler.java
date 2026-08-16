@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import dev.drme.rugdar.dto.Analysis;
-import dev.drme.rugdar.repository.AnalysisRepository;
+import dev.drme.rugdar.repository.analysis.AnalysisRepository;
 import dev.drme.rugdar.utils.Log;
 import org.slf4j.Logger;
 import org.springframework.context.event.EventListener;

@@ -17,7 +17,7 @@ class MarketDataServiceTest {
 
     private final List<Object> published = new ArrayList<>();
     private final MarketDataService service =
-            new MarketDataService(new IdService(0), published::add);
+            new MarketDataService(new IdService(0), published::add, null);
 
     @Test
     void storesLatestTickerPerExchangeSymbol() {
@@ -98,6 +98,21 @@ class MarketDataServiceTest {
         service.onTicker(enriched);
 
         assertThat(published).isEmpty();
+    }
+
+    @Test
+    void republishedEnrichedTickerIsNotStoredTwice() {
+        List<Object> events = new ArrayList<>();
+        MarketDataService[] bus = new MarketDataService[1];
+        bus[0] = new MarketDataService(new IdService(0), event -> {
+            bus[0].onTicker((Ticker) event);
+            events.add(event);
+        }, null);
+
+        bus[0].onTicker(ticker("bybit", "BTCUSDT", "100"));
+
+        assertThat(bus[0].history("bybit", "BTCUSDT")).hasSize(1);
+        assertThat(events).hasSize(1);
     }
 
     private static Ticker ticker(String exchange, String symbol, String last) {
