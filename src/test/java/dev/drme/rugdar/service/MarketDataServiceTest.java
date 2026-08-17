@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import dev.drme.rugdar.service.IdService;
 import org.junit.jupiter.api.Test;
 import dev.drme.rugdar.dto.Ticker;
 import dev.drme.rugdar.service.MarketService.MarketDataService;
@@ -59,7 +58,7 @@ class MarketDataServiceTest {
 
         List<Ticker> history = service.history("bybit", "BTCUSDT");
         assertThat(history).hasSize(200);
-        assertThat(history.get(0).lastPrice()).isEqualByComparingTo("51");
+        assertThat(history.getFirst().lastPrice()).isEqualByComparingTo("51");
         assertThat(history.get(199).lastPrice()).isEqualByComparingTo("250");
     }
 
@@ -83,7 +82,7 @@ class MarketDataServiceTest {
         Ticker stored = service.latest("bybit", "BTCUSDT").orElseThrow();
         assertThat(stored.id()).isNotNull();
         assertThat(published).hasSize(1);
-        assertThat(((Ticker) published.get(0)).id()).isEqualTo(stored.id());
+        assertThat(((Ticker) published.getFirst()).id()).isEqualTo(stored.id());
     }
 
     @Test
