@@ -1,48 +1,49 @@
 package dev.drme.rugdar.repository.analysis;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+
 import dev.drme.rugdar.dto.Analysis;
 import org.bson.Document;
-import org.springframework.boot.mongodb.autoconfigure.MongoConnectionDetails;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Repository
 public class AnalysisRepository {
 
     private static final String COLLECTION = "analyses";
 
-    private final MongoCollection<Document> collection;
+    private final MongoTemplate mongoTemplate;
 
-    public AnalysisRepository(MongoClient mongoClient, MongoConnectionDetails details) {
-        MongoDatabase db = mongoClient.getDatabase(details.getConnectionString().getDatabase());
-        this.collection = db.getCollection(COLLECTION);
+    public AnalysisRepository(MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
     }
 
     public void save(Analysis analysis) {
-        collection.insertOne(new Document()
+        Document document = new Document()
                 .append("_id", analysis.aid())
                 .append("model", analysis.model())
                 .append("timestamp", Date.from(analysis.timestamp()))
-                .append("message", analysis.message()));
+                .append("message", analysis.message());
+        
+        mongoTemplate.save(document, COLLECTION);
     }
 
     public List<Analysis> findLatest(int limit) {
-        List<Analysis> result = new ArrayList<>();
-        for (Document doc : collection.find()
-                .sort(new Document("timestamp", -1))
-                .limit(limit)) {
-            result.add(new Analysis(
-                    doc.get("_id", java.util.UUID.class),
-                    doc.getString("model"),
-                    doc.getDate("timestamp").toInstant(),
-                    doc.getString("message")));
-        }
-        return result;
+        Query query = new Query()
+                .with(Sort.by(Sort.Direction.DESC, "timestamp"))
+                .limit(limit);
+
+        return mongoTemplate.find(query, Document.class, COLLECTION)
+                .stream()
+                .map(doc -> new Analysis(
+                        doc.get("_id", UUID.class),
+                        doc.getString("model"),
+                        doc.getDate("timestamp").toInstant(),
+                        doc.getString("message")))
+                .toList();
     }
 }

@@ -19,10 +19,12 @@ import org.slf4j.Logger;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnBean(AnalysisRepository.class)
 public class MarketAnalysisService {
 
     private static final Logger log = Log.get(MarketAnalysisService.class);

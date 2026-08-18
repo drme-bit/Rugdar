@@ -41,8 +41,6 @@ public class MarketDataService {
     private final ApplicationEventPublisher publisher;
     private final MarketDataRepository repository;
 
-    public int SMA;
-
     @Value("${rugdar.storage.retention-days:7}")
     private int retentionDays;
 

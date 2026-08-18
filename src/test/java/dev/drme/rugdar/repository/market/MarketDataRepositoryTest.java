@@ -40,7 +40,6 @@ class MarketDataRepositoryTest {
 
         repository.saveAll(List.of(t1, t2));
 
-        @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Object[]>> captor = ArgumentCaptor.forClass(List.class);
         verify(jdbc).batchUpdate(anyString(), captor.capture());
 
@@ -61,9 +60,7 @@ class MarketDataRepositoryTest {
         int removed = repository.deleteOlderThan(7);
 
         assertThat(removed).isEqualTo(42);
-        verify(jdbc).update(
-                "",
-                7);
+        verify(jdbc).update(anyString(), eq(7));
     }
 
     @Test
