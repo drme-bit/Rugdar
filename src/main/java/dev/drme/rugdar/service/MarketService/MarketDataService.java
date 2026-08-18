@@ -67,14 +67,14 @@ public class MarketDataService {
     private void store(Ticker ticker) {
         String key = key(ticker.exchange(), ticker.symbol());
         latest.put(key, ticker);
-        Deque<Ticker> deque = history.computeIfAbsent(key, k -> new ArrayDeque<>());
+        Deque<Ticker> deque = history.computeIfAbsent(key, _ -> new ArrayDeque<>());
         synchronized (deque) {
             deque.addLast(ticker);
             while (deque.size() > HISTORY_LIMIT) {
                 deque.removeFirst();
             }
         }
-        indicators.computeIfAbsent(key, k -> new IndicatorState(SMA_PERIOD, EMA_PERIOD))
+        indicators.computeIfAbsent(key, _ -> new IndicatorState(SMA_PERIOD, EMA_PERIOD))
                 .update(ticker.lastPrice());
         if (!queue.offer(ticker)) {
             log.warn("Persist queue full, dropping ticker {}", key);
@@ -92,7 +92,7 @@ public class MarketDataService {
             repository.saveAll(batch);
         } catch (Exception e) {
             log.error("Failed to save {} tickers to DB", batch.size(), e);
-            batch.forEach(queue::offer);
+            queue.addAll(batch);
         }
     }
 
