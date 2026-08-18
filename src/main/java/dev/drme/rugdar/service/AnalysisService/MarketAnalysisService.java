@@ -18,11 +18,14 @@ import dev.drme.rugdar.ws.MarketAnalysisHandler;
 import org.slf4j.Logger;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnBean(AnalysisRepository.class)
 public class MarketAnalysisService {
 
     private static final Logger log = Log.get(MarketAnalysisService.class);
@@ -79,20 +82,20 @@ public class MarketAnalysisService {
                     .user(prompt)
                     .call()
                     .chatResponse();
-            if (response != null) {
-                String analysis = response.getResult().getOutput().getText();
-                String model = response.getMetadata().getModel();
-                Analysis record = new Analysis(
-                        ids.next(),
-                        model,
-                        Instant.now(),
-                        analysis
-                );
-                analysisHandler.broadcast("analysis", record);
-                analysisRepository.save(record);
-            } else {
+            if (response == null) {
                 log.warn("Analysis failed: no response");
+                return;
             }
+            Generation result = response.getResult();
+            if (result == null) {
+                log.warn("Analysis failed: no generation");
+                return;
+            }
+            String analysis = result.getOutput().getText();
+            String model = response.getMetadata().getModel();
+            Analysis record = new Analysis(ids.next(), model, Instant.now(), analysis);
+            analysisHandler.broadcast("analysis", record);
+            analysisRepository.save(record);
         } catch (Exception e) {
             log.warn("Market analysis failed", e);
         }

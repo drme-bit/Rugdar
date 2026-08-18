@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @SpringBootApplication
 public class Main {
-    public static void main(String[] args) {
+    static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone(System.getenv().getOrDefault("JVM_TZ", "Europe/Kyiv")));
         SpringApplication.run(Main.class, args);
     }

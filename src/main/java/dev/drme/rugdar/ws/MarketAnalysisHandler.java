@@ -8,11 +8,13 @@ import dev.drme.rugdar.dto.Analysis;
 import dev.drme.rugdar.repository.analysis.AnalysisRepository;
 import dev.drme.rugdar.utils.Log;
 import org.slf4j.Logger;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 @Component
+@ConditionalOnBean(AnalysisRepository.class)
 public class MarketAnalysisHandler extends TopicWebSocketHandler {
 
     private static final Logger log = Log.get(MarketAnalysisHandler.class);
